@@ -6,7 +6,7 @@ Requires `python >= 2.6`
 
 ```shell
 git clone https://github.com/OptimumPartners/bdd_behave_demo.git
-cd python-bdd-behave
+cd bdd_behave_demo
 pip install -r requirements.txt
 ```
 
