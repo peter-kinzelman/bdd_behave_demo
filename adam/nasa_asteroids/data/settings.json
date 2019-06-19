@@ -1,0 +1,21 @@
+{
+  "url": {
+    "root": "http://www.neowsapp.com",
+    "nasaRoot": "https://ssd.jpl.nasa.gov",
+    "path": {
+      "asteroids": {
+        "septemberAsteroids": "/rest/v1/feed?start_date=2015-09-08&end_date=2015-09-09&detailed=false&api_key=DEMO_KEY",
+        "2015 NZ": "/sbdb.cgi?sstr=3726710",
+        "2015 TX237": "/sbdb.cgi?sstr=3730577",
+        "2006 WO1": "/sbdb.cgi?sstr=3359445"
+      }
+    }
+  },
+  "regex": {
+    "url": "https?://(?:[-\\w.]|(?:%%[\\da-fA-F]{2}))+"
+  },
+  "browser": "chrome",
+  "driver_arguments": [
+    "--headless"
+  ]
+}

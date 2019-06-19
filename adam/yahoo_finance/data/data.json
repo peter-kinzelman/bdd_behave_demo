@@ -1,0 +1,6 @@
+{
+  "url": {
+      "root": "https://api.iextrading.com/1.0/tops",
+      "stocks_path": "/last?symbols=SNAP,fb"
+  }
+}
