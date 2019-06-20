@@ -14,7 +14,7 @@ cd bdd_behave_demo
 pip install -r requirements.txt
 ```
 
-## running tests
+## Running Tests
 ``` shell
 behave # run all feature files
 behave features/ # run all feature files in the given folder
