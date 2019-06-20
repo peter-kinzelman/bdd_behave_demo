@@ -29,8 +29,5 @@ class Asteroids():
         if asteroidData['orbital_data']['epoch_osculation'] not in self.page.epoch_osculation().text : errors.append('The epoch osculation data is incorrect at index ' + str(counter) )
         if asteroidData['orbital_data']['semi_major_axis'] != self.page.semi_major_axis().text : errors.append('The semi major axis is incorrect at index ' + str(counter) )
         counter += 1
-    if errors != []:
-      assert False, errors
 
 asteroid = Asteroids.get_instance()
-

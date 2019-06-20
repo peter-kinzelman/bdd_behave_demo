@@ -2,7 +2,6 @@ from behave import *
 import requests
 from utilities.stocks import yahoo
 from data.config import settings
-import time
 
 errors = []
 
@@ -62,7 +61,7 @@ def step_impl(context):
 @then('the page should have the same data as the API')
 def step_impl(context):
 
-    yahoo.verify_ui_data(data, errors)
+  yahoo.verify_ui_data(data, errors)
 
-    if errors != []: 
-      assert False, errors
+  if errors != []: 
+    assert False, errors

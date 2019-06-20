@@ -2,12 +2,8 @@ from behave import *
 from data.config import settings
 import requests
 import json
-from selenium import webdriver
 import re
-from jsonpath_rw import jsonpath
-from jsonpath_rw_ext import parse
 import jsonpath_rw_ext as jp
-import time
 from utilities.asteroids import asteroid
 
 url = ""
@@ -101,14 +97,18 @@ def step_impl(context):
       for a in f['close_approach_data']:
         if not a['orbiting_body']: errors.append('The Orbiting Body does not exist at index ' + str(counter) )
         counter += 1
-  if errors != []:
-    assert False, errors
 
-@given('I am on the asteroid web page')
+@given('I have the asteroid API data')
 def step_impl(context):
-  asteroid.verify_asteroid(data, errors)
+  pass
+
+@when('I am on the asteroid page')
+def step_impl(context):
+  pass
 
 @then('the asteroid should have the same data as the API')
 def step_impl(context):
-  counter = 0
-  assert False
+  asteroid.verify_asteroid(data, errors)
+
+  if errors != []:
+    assert False, errors
