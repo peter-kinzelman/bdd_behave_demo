@@ -1,67 +1,123 @@
 from behave import *
 import requests
-from utilities.stocks import yahoo
-from data.config import settings
+import json
+import re
+import jsonpath_rw_ext as jp
+from selenium import webdriver
+import time
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from config.constants import *
+from zaid.nasa_asteroids.config.constants import Constants
+import math
 
-errors = []
+# No need for global variables in Steps files. Use context.{some_variable_name}.
 
-@given('we have called the api')
+# _result = []
+# _url = ""
+# _method = ""
+
+
+"""
+
+NOTES: 
+
+1) Make all function names as descriptive as possible, try and avoid default 'step_impl'
+
+2) We'll use regex for all step matching. 
+
+3) Python conventionally uses snake_case
+
+"""
+
+
+@given(u'the api service is for : "{endPoint}" stocks')
+def step_impl(context, endPoint):
+    if endPoint == "SNAP,fb":
+        # store endpoints somewhere else, call them by name
+        context.url = Constants.FULL_URL + endPoint
+    else:
+        assert False, "endpoint url is not provided"
+
+
+@when(u'the service method is "{method}"')
+def step_impl(context, method):
+    context.method = method
+
+
+@then(u'the response code should be "{status}"')
+def step_impl(context, status):
+    context.esponse = requests.request(context.method, context.url)
+    context.result = context.response.json()
+    # Anything we want to "archive" and validate later just put into context
+    assert context.response.status_code is int(status)
+
+
+@then(u'it should return the datafor "{num}" company')
+def step_impl(context, num):
+    context.total_number = len(context.result)
+    assert str(context.total_number) == str(num)
+
+
+@then(u'verify required fields')
 def step_impl(context):
-  global url
-  url = settings['url']['root'] + settings['url']['stocks_path']
+    errors = []
+    counter = 1
+    for stock in context.result:
+        err = []
+        if type(stock['symbol']) is None:
+            err.append('stock in index ' + str(counter) +
+                       ' dose not have symbol')
+        if type(stock['price']) is None:
+            err.append('stock in index ' + str(counter) +
+                       ' dose not have price')
+        counter += 1
+        if err != []:
+            errors.append(err)
+    if errors != []:
+        assert False, errors
 
-@when('the service method is GET')
+
+@given(u'we have the data from the api')
 def step_impl(context):
-  pass
+    assert context.result is not None
 
-@then('the Response call should be 200')
+
+@then(u'the UI should have the same data as the api')
 def step_impl(context):
-  global response
-  response = requests.request("GET", url)
-  global data
-  data = response.json()
-  print(data)
-  assert response.status_code is 200
+    errors = []
+    counter = 1
 
-@then('the required data should be present')
-def step_impl(context):
-  counter = 0 
+    # there has to be a generic method for this
+    def floatDigits(f, n):
+        return math.floor(f * 10 ** n) / 10 ** n
 
-  for f in data:
-    if f['symbol'] is None: errors.append('Symbol is not present at index ' + str(counter))
-    if f['price'] is None: errors.append('Price is empty at ' + counter)
-    if f['size'] is None: errors.append('Size is empty at ' + counter)
-    if f['time'] is None: errors.append('Time is empty at ' + counter)
-    counter += 1
+    # Where are all these CONSTANT values declared?
+    for stock in context.result:
+        err = []
+        browser = Common.chrome()
+        browser.get(Constants.YAHOO_URL)
+        # All these elements should live on a Page Object
+        browser.find_element(
+            By.CSS_SELECTOR, SEARCH_INPUT_locator).send_keys(stock["symbol"])
+        browser.find_element(By.CSS_SELECTOR, SEARCH_BUTTON_locator).click()
+        WebDriverWait(browser, 10).until(
+            EC.presence_of_element_located((By.XPATH, PRICE_locator)))
+        arr = []
+        for x in range(5):
+            time.sleep(2)
+            price = browser.find_element(By.XPATH, PRICE_locator).text
+            arr.append(floatDigits(float(price), 2))
 
-@then('the symbol should be a unicode')
-def step_impl(context):
-  counter = 0
+        if round(float(stock["price"]), 2) not in arr:
+            err.append(["The two prices is not equal for " + stock["symbol"],
+                        arr, round(float(stock["price"]), 2)])
 
-  for f in data:
-    if type(f['symbol']) != unicode: errors.append('Symbol is not a unicode at index ' + str(counter))
-    counter += 1
-
-@then('the price should be a decimal')
-def step_impl(context):
-  counter = 0
-
-  for f in data:
-    if type(f['price']) != float: errors.append('Price is not a decimal at index ' + str(counter))
-    counter += 1
-
-@given('I am on the yahoo web page')
-def step_impl(context):
-  yahoo.get_yahoo_stocks()
-
-@when('I am on the company page')
-def step_impl(context):
-  yahoo.get_company_page(data, errors)
-
-@then('the page should have the same data as the API')
-def step_impl(context):
-
-  yahoo.verify_ui_data(data, errors)
-
-  if errors != []: 
-    assert False, errors
+        browser.quit()
+        if err != []:
+            errors.append(err)
+        counter += 1
+    if errors != []:
+        assert False, errors
